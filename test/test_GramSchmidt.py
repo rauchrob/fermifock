@@ -6,9 +6,7 @@ from sympy import Matrix
 class GramSchmidtWithOrthonormalBasis(TestCase):
     def setUp(self):
         self.basis = [1,2,3,4]
-
-    def scalarProduct(self, a, b):
-        return 1 if a == b else 0
+        self.scalarProduct = lambda i,j: 1 if i == j else 0
 
     def test_GramMatrixIsTrivial(self):
         gram = gramMatrix(self.basis, self.scalarProduct)
