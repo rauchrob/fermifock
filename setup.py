@@ -8,5 +8,7 @@ setup(name='fermifock',
       author_email='mail@robertrauch.de',
       license='MIT',
       install_requires=['sympy'],
+      test_suite='nose.collector',
+      tests_require=['nose'],
       packages=['fermifock'],
       zip_safe=False)
