@@ -4,11 +4,12 @@ from fermifock.FockSpace import FockSpace, scalarProduct
 from sympy import FiniteSet
 
 class TestFermionicFockSpace(TestCase):
+    def setUp(self):
+        self.fock = FockSpace(6)
+
     def test_is_instantiable(self):
-        self.assertIsInstance(FockSpace(3), FockSpace)
+        self.assertIsInstance(self.fock, FockSpace)
 
     def test_scalarProduct(self):
-        fock = FockSpace(6)
-        K = FiniteSet(1,2,3)
-
-        self.assertEqual(scalarProduct(fock.N(K), fock.N(K)), 8)
+        N = self.fock.N(FiniteSet(1,2,3))
+        self.assertEqual(scalarProduct(N, N), 8)
