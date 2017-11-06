@@ -1,3 +1,5 @@
+from fermifock.FockSpace import FockSpace, scalarProduct
+from sympy import Matrix, sqrt, expand
 
 def gramMatrix(basis, scalarproduct):
     n = len(basis)
@@ -18,7 +20,7 @@ def gramSchmidt(basis, scalarproduct):
 
 
 def ONBofHk(n,k):
-    F = FermionicFockSpace(n)
+    F = FockSpace(n)
     Is = sorted([I for I in F.basisIndicies() if len(I) <= k], key=lambda I: (len(I), I)) 
 
     return gramSchmidt([F.N(I) for I in Is], scalarProduct)
@@ -26,7 +28,7 @@ def ONBofHk(n,k):
 from sympy import sympify, Rational, Range
 
 def ONB_guess(n,k):
-    F = FermionicFockSpace(n)
+    F = FockSpace(n)
 
     Is = sorted([I for I in F.basisIndicies() if len(I) <= k], key=lambda I: (len(I), I)) 
     return [expand(2**(-(sympify(n)/2))*F.N_tilde2(I)) for I in Is]
