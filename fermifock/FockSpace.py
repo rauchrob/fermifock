@@ -1,4 +1,4 @@
-from sympy import Add, Expr, FiniteSet, Integer,  Mul
+from sympy import Add, Expr, FiniteSet, Integer, Mul, sympify
 
 class FockSpace:
     def __init__(self, n):
