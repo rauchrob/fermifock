@@ -26,6 +26,10 @@ class FockSpace:
     def one_particle_dimension(self):
         return self.one_particle_dimension
 
+    @property
+    def dimension(self):
+        return 2**self.one_particle_dimension
+
 class N_Operator(Expr):
     is_commutative = False
     is_number = False
