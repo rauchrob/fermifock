@@ -1,7 +1,10 @@
 from unittest import TestCase
 
-from fermifock.FockSpace import FockSpace, scalarProduct
 from sympy import FiniteSet
+
+from fermifock.orthonormalization import scalarProduct
+from fermifock.spaces import FockSpace
+
 
 class TestFermionicFockSpace(TestCase):
     def setUp(self):
@@ -11,5 +14,5 @@ class TestFermionicFockSpace(TestCase):
         self.assertIsInstance(self.fock, FockSpace)
 
     def test_scalarProduct(self):
-        N = self.fock.N(FiniteSet(1,2,3))
+        N = self.fock.N(FiniteSet(1, 2, 3))
         self.assertEqual(scalarProduct(N, N), 8)
