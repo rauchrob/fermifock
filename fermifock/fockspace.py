@@ -1,19 +1,28 @@
 import sympy.physics.quantum
 
-from sympy import FiniteSet
-from sympy.physics.quantum import Operator
-
+from sympy import Add, Mul, FiniteSet, sympify, Matrix
+from sympy.physics.quantum import Operator, qapply
 
 class FermionicFockBra(sympy.physics.quantum.Bra):
     def dual_class(self):
         return FermionicFockKet
 
+    @classmethod
+    def default_args(cls):
+        return ()
+
+
+Bra = FermionicFockBra
 
 class FermionicFockKet(sympy.physics.quantum.Ket):
     def __new__(cls, *args, **kwargs):
         if _has_duplicates(args):
             return 0
         return super(FermionicFockKet, cls).__new__(cls, *args, **kwargs)
+
+    @classmethod
+    def default_args(cls):
+        return ()
 
     def dual_class(self):
         return FermionicFockBra
@@ -27,6 +36,8 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
         return FermionicFockKet(*list(self.label + other.label))
 
 
+Ket = FermionicFockKet
+
 class N(Operator):
     def __new__(cls, *args, **kwargs):
         return Operator.__new__(cls, *_deduplicate_tuple(args), **kwargs)
@@ -36,6 +47,34 @@ class N(Operator):
             return ket
         return 0 * ket
 
+    def _eval_trace(self, **hints):
+        return sympify(2) ** len(self.label)
+
+    def _represent_default_basis(self, **options):
+        n = options['one_particle_hilbertspace_dimension']
+        basis = [FermionicFockKet(*tuple(s)) for s in FiniteSet(*range(1, n + 1)).powerset()]
+        print basis
+
+        result = Matrix.zeros(2 ** n)
+        return Matrix(2 ** n, 2 ** n, lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
+
+
+def trace(expr, **hints):
+    if expr.func == Add:
+        return Add(*[trace(arg) for arg in expr.args])
+    if expr.func == Mul:
+        number_args = [arg for arg in expr.args if arg.is_Number]
+        non_number_args = [arg for arg in expr.args if not arg.is_Number]
+        if len(non_number_args) == 1:
+            return Mul(Mul(*number_args), trace(non_number_args[0]))
+
+    if expr.func.is_Number:
+        return expr
+
+    if hasattr(expr.func, '_eval_trace'):
+        return expr._eval_trace(**hints)
+
+    raise NotImplementedError
 
 def _deduplicate_tuple(t):
     seen_entries = []
