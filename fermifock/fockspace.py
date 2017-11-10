@@ -1,33 +1,20 @@
+import sympy.physics.quantum
+
 from sympy import FiniteSet
-from sympy.physics.quantum import Bra, Ket, Operator
+from sympy.physics.quantum import Operator
 
 
-class FermionicFockBra(Bra):
-    def __new__(cls, *args, **kwargs):
-        # if (len(args) == 1):
-        #     if isinstance(args[0], FiniteSet):
-        #         return Bra.__new__(cls, args, **kwargs)
-        #     return Bra.__new__(cls, args, **kwargs)
-        if len(args) == 1 and isinstance(args[0], FiniteSet):
-            return Bra.__new__(cls, *args, **kwargs)
-        if len(args) >= 1:
-            return Bra.__new__(cls, FiniteSet(*list(args)), **kwargs)
-
+class FermionicFockBra(sympy.physics.quantum.Bra):
     def dual_class(self):
         return FermionicFockKet
 
-    @property
-    def label(self):
-        return super(FermionicFockBra, self).label[0]
 
-    def __mul__(self, other):
-        if self.label.is_disjoint(other.label):
-            return FermionicFockBra(self.label.union(other.label))
-        return 0 * self
+class FermionicFockKet(sympy.physics.quantum.Ket):
+    def __new__(cls, *args, **kwargs):
+        if _has_duplicates(args):
+            return 0
+        return super(FermionicFockKet, cls).__new__(cls, *args, **kwargs)
 
-
-class FermionicFockKet(Ket):
-    # TODO: ensure label is a single FiniteSet
     def dual_class(self):
         return FermionicFockBra
 
@@ -36,21 +23,35 @@ class FermionicFockKet(Ket):
             return 1
         return 0
 
-
-class TraceClassOperator(Operator):
-    def trace(self):
-        raise NotImplementedError
+    def __mul__(self, other):
+        return FermionicFockKet(*list(self.label + other.label))
 
 
-class N(TraceClassOperator):
+class N(Operator):
+    def __new__(cls, *args, **kwargs):
+        return Operator.__new__(cls, *_deduplicate_tuple(args), **kwargs)
+
     def _apply_operator_FermionicFockKet(self, ket, **options):
-        if self.label[0].is_subset(ket.label[0]):
+        if FiniteSet(*self.label).is_subset(FiniteSet(*ket.label)):
             return ket
         return 0 * ket
 
-        # print(FermionicFockBra(FiniteSet(1, 2)) * FermionicFockKet(FiniteSet(1, 3)))
 
-        # A = N(FiniteSet(1,2))
-        # ket = FermionicFockKet(FiniteSet(1,2))
-        # print qapply((A+A)*ket)
-        # print qapply((A)*ket)
+def _deduplicate_tuple(t):
+    seen_entries = []
+    result = ()
+    for entry in t:
+        if entry in seen_entries:
+            continue
+        seen_entries.append(entry)
+        result += (entry,)
+    return result
+
+
+def _has_duplicates(t):
+    seen_entries = []
+    for entry in t:
+        if entry in seen_entries:
+            return True
+        seen_entries.append(entry)
+    return False
