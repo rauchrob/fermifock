@@ -1,6 +1,6 @@
 import sympy.physics.quantum
 from sympy import Add, Mul, FiniteSet, sympify, Matrix
-from sympy.physics.quantum import Operator, qapply
+from sympy.physics.quantum import Operator, qapply, StateBase
 
 from fermifock.helpers import deduplicate_tuple, has_duplicates, signed_sort
 
@@ -39,6 +39,18 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
 
 Ket = FermionicFockKet
 
+
+class FermionicFockBasis(StateBase):
+    def __init__(self, n):
+        self.n = n
+        self.indicies = [I for I in FiniteSet(*range(1, n + 1)).powerset()]
+
+    def __len__(self):
+        return 2 ** self.n
+
+    def __getitem__(self, item):
+        return FermionicFockKet(*tuple(self.indicies[item]))
+
 class N(Operator):
     def __new__(cls, *args, **kwargs):
         return Operator.__new__(cls, *deduplicate_tuple(args), **kwargs)
@@ -51,12 +63,8 @@ class N(Operator):
     def _eval_trace(self, **kwargs):
         return sympify(2) ** len(self.label)
 
-    def _represent_default_basis(self, **kwargs):
-        n = kwargs['one_particle_hilbertspace_dimension']
-        basis = [FermionicFockKet(*tuple(s)) for s in FiniteSet(*range(1, n + 1)).powerset()]
-
-        result = Matrix.zeros(2 ** n)
-        return Matrix(2 ** n, 2 ** n, lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
+    def _represent_FermionicFockBasis(self, basis, **kwargs):
+        return Matrix(len(basis), len(basis), lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
 
 def trace(expr, **hints):
     if expr.func == Add:
