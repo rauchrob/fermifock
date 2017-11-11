@@ -15,12 +15,6 @@ class FockSpace:
     def N(self, state):
         return N_Operator(state, self)
 
-    def N_tilde(self, state):
-        N_tilde = sympify(0)
-        for K in state.powerset():
-            N_tilde += Rational(-1, 2) ** (len(K.complement(state))) * self.N(K)
-        return N_tilde
-
     def N_tilde2(self, state):
         N_tilde = sympify(0)
         for K in state.powerset():

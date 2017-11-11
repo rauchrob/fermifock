@@ -6,7 +6,7 @@ from fermifock.orthonormalization import scalarProduct
 from fermifock.spaces import FockSpace
 
 
-class TestFermionicFockSpace(TestCase):
+class TestFockSpace(TestCase):
     def setUp(self):
         self.fock = FockSpace(6)
 
