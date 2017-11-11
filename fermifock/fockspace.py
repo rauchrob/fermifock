@@ -3,6 +3,7 @@ import sympy.physics.quantum
 from sympy import Add, Mul, FiniteSet, sympify, Matrix
 from sympy.physics.quantum import Operator, qapply
 
+
 class FermionicFockBra(sympy.physics.quantum.Bra):
     def dual_class(self):
         return FermionicFockKet
@@ -11,7 +12,6 @@ class FermionicFockBra(sympy.physics.quantum.Bra):
     def default_args(cls):
         return ()
 
-
 Bra = FermionicFockBra
 
 class FermionicFockKet(sympy.physics.quantum.Ket):
@@ -19,10 +19,6 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
         if _has_duplicates(args):
             return 0
         return super(FermionicFockKet, cls).__new__(cls, *args, **kwargs)
-
-    @classmethod
-    def default_args(cls):
-        return ()
 
     def dual_class(self):
         return FermionicFockBra
@@ -35,6 +31,9 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
     def __mul__(self, other):
         return FermionicFockKet(*list(self.label + other.label))
 
+    @classmethod
+    def default_args(cls):
+        return ()
 
 Ket = FermionicFockKet
 
@@ -53,11 +52,9 @@ class N(Operator):
     def _represent_default_basis(self, **options):
         n = options['one_particle_hilbertspace_dimension']
         basis = [FermionicFockKet(*tuple(s)) for s in FiniteSet(*range(1, n + 1)).powerset()]
-        print basis
 
         result = Matrix.zeros(2 ** n)
         return Matrix(2 ** n, 2 ** n, lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
-
 
 def trace(expr, **hints):
     if expr.func == Add:
