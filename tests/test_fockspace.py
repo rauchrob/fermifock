@@ -18,7 +18,7 @@ class TestFermionicFockKet(TestCase):
     def setUp(self):
         self.ket1 = FermionicFockKet(1)
         self.ket2 = FermionicFockKet(2, 3)
-        self.ket3 = FermionicFockKet(2, 1)
+        self.ket3 = FermionicFockKet(3, 2, 1)
 
     def test_instantiating_without_args_should_lead_to_empty_label(self):
         self.assertEqual(FermionicFockKet().label, ())
@@ -33,7 +33,7 @@ class TestFermionicFockKet(TestCase):
 
     def test_anticommutativity(self):
         self.assertEqual(self.ket1 * self.ket1, 0)
-        self.assertEqual(self.ket3, -FermionicFockKet(1, 2))
+        self.assertEqual(self.ket3, -FermionicFockKet(1, 2, 3))
 
 
 class TestN(TestCase):
@@ -55,7 +55,6 @@ class TestN(TestCase):
         self.assertEqual(trace(N(1, 2) + N(1, 3)), 8)
         self.assertRaises(NotImplementedError, trace, N(1, 2) * N(2, 3))
 
-    # @skip('not yet implemented => TODO')
     def test_representation(self):
         rep = represent(N(1, 2), one_particle_hilbertspace_dimension=2)
         self.assertEqual(rep, Matrix([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]))

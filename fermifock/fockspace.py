@@ -2,7 +2,7 @@ import sympy.physics.quantum
 from sympy import Add, Mul, FiniteSet, sympify, Matrix
 from sympy.physics.quantum import Operator, qapply
 
-from fermifock.helpers import deduplicate_tuple, has_duplicates
+from fermifock.helpers import deduplicate_tuple, has_duplicates, signed_sort
 
 
 class FermionicFockBra(sympy.physics.quantum.Bra):
@@ -19,7 +19,8 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
     def __new__(cls, *args, **kwargs):
         if has_duplicates(args):
             return 0
-        return super(FermionicFockKet, cls).__new__(cls, *args, **kwargs)
+        (sign, sorted_args) = signed_sort(args)
+        return sign * super(FermionicFockKet, cls).__new__(cls, *sorted_args, **kwargs)
 
     def dual_class(self):
         return FermionicFockBra
@@ -47,11 +48,11 @@ class N(Operator):
             return ket
         return 0 * ket
 
-    def _eval_trace(self, **hints):
+    def _eval_trace(self, **kwargs):
         return sympify(2) ** len(self.label)
 
-    def _represent_default_basis(self, **options):
-        n = options['one_particle_hilbertspace_dimension']
+    def _represent_default_basis(self, **kwargs):
+        n = kwargs['one_particle_hilbertspace_dimension']
         basis = [FermionicFockKet(*tuple(s)) for s in FiniteSet(*range(1, n + 1)).powerset()]
 
         result = Matrix.zeros(2 ** n)
