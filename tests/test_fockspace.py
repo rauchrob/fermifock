@@ -13,6 +13,9 @@ class TestBra(TestCase):
     def test_dual(self):
         self.assertEqual(Bra(1, 2).dual, Ket(1, 2))
 
+    def test_representation(self):
+        self.assertEqual(represent(Bra(1, 2), basis=FermionicFockBasis(2)), Matrix([[0, 1, 0, 0]]))
+
 
 class TestKet(TestCase):
     def setUp(self):
@@ -34,6 +37,9 @@ class TestKet(TestCase):
     def test_anticommutativity(self):
         self.assertEqual(self.ket1 * self.ket1, 0)
         self.assertEqual(self.ket3, -Ket(1, 2, 3))
+
+    def test_representation(self):
+        self.assertEqual(represent(self.ket1, basis=FermionicFockBasis(2)), Matrix([1, 0, 0, 0]))
 
 
 class TestN(TestCase):
