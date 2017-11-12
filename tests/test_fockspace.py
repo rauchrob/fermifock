@@ -14,7 +14,7 @@ class TestBra(TestCase):
         self.assertEqual(Bra(1, 2).dual, Ket(1, 2))
 
     def test_representation(self):
-        self.assertEqual(represent(Bra(1, 2), basis=FermionicFockBasis(2)), Matrix([[0, 1, 0, 0]]))
+        self.assertEqual(represent(Bra(1, 2), basis=FermionicFockBasis(2)), Matrix([[0, 0, 0, 1]]))
 
 
 class TestKet(TestCase):
@@ -39,7 +39,7 @@ class TestKet(TestCase):
         self.assertEqual(self.ket3, -Ket(1, 2, 3))
 
     def test_representation(self):
-        self.assertEqual(represent(self.ket1, basis=FermionicFockBasis(2)), Matrix([1, 0, 0, 0]))
+        self.assertEqual(represent(self.ket1, basis=FermionicFockBasis(2)), Matrix([0, 1, 0, 0]))
 
 
 class TestN(TestCase):
@@ -63,8 +63,8 @@ class TestN(TestCase):
 
     def test_representation1(self):
         rep = represent(N(1), basis=FermionicFockBasis(2))
-        self.assertEqual(rep, Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]))
+        self.assertEqual(rep, Matrix([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]))
 
     def test_representation2(self):
         rep = represent(N(1, 2), basis=FermionicFockBasis(2))
-        self.assertEqual(rep, Matrix([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]))
+        self.assertEqual(rep, Matrix([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]))

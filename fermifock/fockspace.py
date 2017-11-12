@@ -8,7 +8,9 @@ from fermifock.helpers import deduplicate_tuple, has_duplicates, signed_sort
 class FermionicFockBasis(StateBase):
     def __init__(self, n):
         self.n = n
-        self.indicies = [I for I in FiniteSet(*range(1, n + 1)).powerset()]
+        l = [I for I in FiniteSet(*range(1, n + 1)).powerset()]
+        l.sort(key=(lambda s: (len(s), s)))
+        self.indicies = l
 
     def __len__(self):
         return 2 ** self.n
