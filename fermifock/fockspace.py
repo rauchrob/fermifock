@@ -1,9 +1,23 @@
 import sympy.physics.quantum
-from sympy import Add, Mul, FiniteSet, sympify, Matrix
-from sympy.physics.quantum import Operator, qapply, StateBase
+from sympy import Add, Mul, FiniteSet, sympify, Matrix, S
+from sympy.physics.quantum import Operator, qapply, StateBase, represent
 
 from fermifock.helpers import deduplicate_tuple, has_duplicates, signed_sort
 
+__all__ = [
+    'FermionicFockBasis',
+    'FermionicFockKet',
+    'FermionicFockBra',
+    'Ket',
+    'Bra',
+    'N',
+    'Cd',
+    'C',
+    'Vacuum',
+    'represent',
+    'trace',
+    'qapply',
+]
 
 class FermionicFockBasis(StateBase):
     def __init__(self, n):
@@ -33,10 +47,14 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
     def dual_class(self):
         return FermionicFockBra
 
+    @property
+    def label_set(self):
+        return FiniteSet(*self.label)
+
     def _eval_innerproduct_FermionicFockBra(self, bra, **hints):
         if self.label == bra.label:
-            return 1
-        return 0
+            return S.One
+        return S.Zero
 
     def _represent_FermionicFockBasis(self, basis, **kwargs):
         return Matrix(len(basis), 1, lambda i, j: (self.dual * basis[i]).doit())
@@ -46,6 +64,7 @@ class FermionicFockKet(sympy.physics.quantum.Ket):
 
 
 Ket = FermionicFockKet
+Vacuum = Ket()
 
 
 class FermionicFockBra(sympy.physics.quantum.Bra):
@@ -60,22 +79,99 @@ class FermionicFockBra(sympy.physics.quantum.Bra):
 Bra = FermionicFockBra
 
 
-# TODO: Add C and Cd Operators
+class TraceError(StandardError):
+    pass
+
+
+class Cd(Operator):
+    def __new__(cls, *args, **kwargs):
+        if has_duplicates(args):
+            return S.Zero
+        (sign, sorted_args) = signed_sort(args)
+        return sign * Operator.__new__(cls, *sorted_args, **kwargs)
+
+    @property
+    def label_set(self):
+        return FiniteSet(*self.label)
+
+    @classmethod
+    def default_args(cls):
+        return ()
+
+    def _apply_operator_FermionicFockKet(self, ket, **kwargs):
+        if self.label_set.is_disjoint(ket.label_set):
+            return FermionicFockKet(*self.label_set.union(ket.label_set))
+        else:
+            return S.Zero
+
+    def _eval_trace(self, basis, **kwargs):
+        if self.label == ():
+            if basis == None:
+                raise TraceError('computation of trace requires specifying a basis')
+            else:
+                return len(basis)
+        else:
+            return S.Zero
+
+    def _represent_FermionicFockBasis(self, basis, **kwargs):
+        return Matrix(len(basis), len(basis), lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
+
+    def _eval_adjoint(self):
+        return C(*self.label)
+
+
+class C(Operator):
+    def __new__(cls, *args, **kwargs):
+        if has_duplicates(args):
+            return S.Zero
+        (sign, sorted_args) = signed_sort(args)
+        return sign * Operator.__new__(cls, *sorted_args, **kwargs)
+
+    @classmethod
+    def default_args(cls):
+        return ()
+
+    @property
+    def label_set(self):
+        return FiniteSet(*self.label)
+
+    def _eval_trace(self, basis, **kwargs):
+        return trace(self.adjoint(), basis, **kwargs)
+
+    def _apply_operator_FermionicFockKet(self, ket, **kwargs):
+        if self.label_set.is_subset(ket.label_set):
+            K = ket.label_set - self.label_set
+            return (qapply(Cd(*self.label) * Ket(*tuple(K))).dual * Ket(*ket.label)).doit() * Ket(*tuple(K))
+        else:
+            return S.Zero
+
+    def _represent_FermionicFockBasis(self, basis, **kwargs):
+        return Matrix(len(basis), len(basis), lambda i, j: qapply(basis[i].dual * self * basis[j]).doit())
+
+    def _eval_adjoint(self):
+        return Cd(*self.label)
+
 
 class N(Operator):
     def __new__(cls, *args, **kwargs):
         return Operator.__new__(cls, *deduplicate_tuple(args), **kwargs)
 
-    def _apply_operator_FermionicFockKet(self, ket, **options):
+    @classmethod
+    def default_args(cls):
+        return ()
+
+    def _apply_operator_FermionicFockKet(self, ket, **kwargs):
         if FiniteSet(*self.label).is_subset(FiniteSet(*ket.label)):
             return ket
-        return 0 * ket
+        return S.Zero
 
     def _eval_trace(self, basis, **kwargs):
         if basis == None:
-            raise ValueError('computation of trace requires specifying a basis')
+            raise TraceError('computation of trace requires specifying a basis')
         if isinstance(basis, FermionicFockBasis):
             return (sympify(2) ** (-len(self.label))) * len(basis)
+        else:
+            return represent(self, basis=basis).trace()
 
     def _represent_FermionicFockBasis(self, basis, **kwargs):
         return Matrix(len(basis), len(basis), lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))

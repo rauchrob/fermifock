@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from sympy import Matrix
 from fermifock import *
 
 
@@ -38,6 +39,48 @@ class TestKet(TestCase):
 
     def test_representation(self):
         self.assertEqual(represent(self.ket1, basis=FermionicFockBasis(2)), Matrix([0, 1, 0, 0]))
+
+
+class TestCd(TestCase):
+    def test_antisymmetry(self):
+        self.assertEqual(Cd(1, 1), 0)
+        self.assertEqual(Cd(2, 1), -Cd(1, 2))
+
+    def test_qapply(self):
+        self.assertEqual(qapply(Cd() * Ket()), Ket())
+        self.assertEqual(qapply(Cd(1) * Ket()), Ket(1))
+        self.assertEqual(qapply(Cd(1) * Ket(1)), 0)
+        self.assertEqual(qapply(Cd(1, 3, 6) * Ket(2, 4, 10)), -Ket(2, 1, 3, 4, 6, 10))
+
+    def test_represent(self):
+        B = FermionicFockBasis(2)
+        self.assertEqual(represent(Cd(), basis=B), Matrix.diag(1, 1, 1, 1))
+        self.assertEqual(represent(Cd(1), basis=B), Matrix([[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]]))
+
+    def test_trace(self):
+        self.assertEqual(trace(Cd(), FermionicFockBasis(2)), 4)
+        self.assertEqual(trace(Cd(1, 2, 7)), 0)
+
+
+class TestC(TestCase):
+    def test_antisymmetry(self):
+        self.assertEqual(C(1, 1), 0)
+        self.assertEqual(C(2, 1), -C(1, 2))
+
+    def test_qapply(self):
+        self.assertEqual(qapply(C() * Vacuum), Vacuum)
+        self.assertEqual(qapply(C(1) * Ket(1)), Ket())
+        self.assertEqual(qapply(C(1) * Ket(2)), 0)
+        self.assertEqual(qapply(C(1, 2) * Ket(1, 2, 4, 10)), Ket(4, 10))
+
+    def test_represent(self):
+        B = FermionicFockBasis(2)
+        self.assertEqual(represent(C(), basis=B), Matrix.diag(1, 1, 1, 1))
+        self.assertEqual(represent(C(1), basis=B), represent(Cd(1), basis=B).transpose())
+
+    def test_trace(self):
+        self.assertEqual(trace(C(), FermionicFockBasis(2)), 4)
+        self.assertEqual(trace(C(1, 2, 7)), 0)
 
 
 class TestN(TestCase):
