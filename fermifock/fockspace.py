@@ -60,6 +60,8 @@ class FermionicFockBra(sympy.physics.quantum.Bra):
 Bra = FermionicFockBra
 
 
+# TODO: Add C and Cd Operators
+
 class N(Operator):
     def __new__(cls, *args, **kwargs):
         return Operator.__new__(cls, *deduplicate_tuple(args), **kwargs)
@@ -69,26 +71,29 @@ class N(Operator):
             return ket
         return 0 * ket
 
-    def _eval_trace(self, **kwargs):
-        return sympify(2) ** len(self.label)
+    def _eval_trace(self, basis, **kwargs):
+        if basis == None:
+            raise ValueError('computation of trace requires specifying a basis')
+        if isinstance(basis, FermionicFockBasis):
+            return (sympify(2) ** (-len(self.label))) * len(basis)
 
     def _represent_FermionicFockBasis(self, basis, **kwargs):
         return Matrix(len(basis), len(basis), lambda i, j: (qapply(basis[i].dual * (self * basis[j])).doit()))
 
 
-def trace(expr, **hints):
+def trace(expr, basis=None, **kwargs):
     if expr.func == Add:
-        return Add(*[trace(arg) for arg in expr.args])
+        return Add(*[trace(arg, basis=basis) for arg in expr.args])
     if expr.func == Mul:
         number_args = [arg for arg in expr.args if arg.is_Number]
         non_number_args = [arg for arg in expr.args if not arg.is_Number]
         if len(non_number_args) == 1:
-            return Mul(Mul(*number_args), trace(non_number_args[0]))
+            return Mul(Mul(*number_args), trace(non_number_args[0], basis=basis))
 
     if expr.func.is_Number:
         return expr
 
     if hasattr(expr.func, '_eval_trace'):
-        return expr._eval_trace(**hints)
+        return expr._eval_trace(basis, **kwargs)
 
     raise NotImplementedError

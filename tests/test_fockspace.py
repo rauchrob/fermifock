@@ -1,7 +1,5 @@
 from unittest import TestCase
 
-from sympy.physics.quantum import represent
-
 from fermifock import *
 
 
@@ -56,10 +54,11 @@ class TestN(TestCase):
         self.assertEqual(qapply(N(1, 3) * Ket(1, 2)), 0)
 
     def test_trace(self):
-        self.assertEqual(trace(N(1, 2)), 4)
-        self.assertEqual(trace(3 * N(1, 2)), 12)
-        self.assertEqual(trace(N(1, 2) + N(1, 3)), 8)
-        self.assertRaises(NotImplementedError, trace, N(1, 2) * N(2, 3))
+        B = FermionicFockBasis(2)
+        self.assertEqual(trace(N(1, 2), basis=B), 1)
+        self.assertEqual(trace(3 * N(1, 2), basis=B), 3)
+        self.assertEqual(trace(N(1, 2) + N(1, 3), basis=B), 2)
+        self.assertRaises(NotImplementedError, trace, N(1, 2) * N(2, 3), basis=B)
 
     def test_representation1(self):
         rep = represent(N(1), basis=FermionicFockBasis(2))
