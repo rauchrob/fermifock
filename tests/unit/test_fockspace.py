@@ -101,7 +101,9 @@ class TestN(TestCase):
         self.assertEqual(trace(N(1, 2), basis=B), 1)
         self.assertEqual(trace(3 * N(1, 2), basis=B), 3)
         self.assertEqual(trace(N(1, 2) + N(1, 3), basis=B), 2)
-        self.assertRaises(NotImplementedError, trace, N(1, 2) * N(2, 3), basis=B)
+        self.assertEqual(hs_scalarproduct(N(), N(2), basis=B), 2)
+        self.assertEqual(hs_scalarproduct(N(1), N(1), basis=B), 2)
+        self.assertEqual(hs_scalarproduct(N(1), N(2), basis=B), 1)
 
     def test_representation1(self):
         rep = represent(N(1), basis=FermionicFockBasis(2))

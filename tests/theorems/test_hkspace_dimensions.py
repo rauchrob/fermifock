@@ -8,9 +8,6 @@ from fermifock.spaces import FockSpace, HkSpace, HCkSpace
 
 
 class TestHkSpace(unittest.TestCase):
-    def test_instantiable(self):
-        self.assertIsInstance(HkSpace(2, 3), HkSpace)
-
     @unittest.skip('Fix dimension formula for Hk')
     def test_dimension(self):
         self.assertEqual(HkSpace(4, 1).dimension(), 2 * (4 ** 2) + 4 + 2)
