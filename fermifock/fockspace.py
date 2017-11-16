@@ -13,11 +13,14 @@ __all__ = [
     'N',
     'Cd',
     'C',
+    'NCdC',
     'Vacuum',
     'represent',
     'trace',
     'qapply',
+    'hs_scalarproduct'
 ]
+
 
 class FermionicFockBasis(StateBase):
     def __init__(self, n):
@@ -192,4 +195,13 @@ def trace(expr, basis=None, **kwargs):
     if hasattr(expr.func, '_eval_trace'):
         return expr._eval_trace(basis, **kwargs)
 
-    raise NotImplementedError
+    return represent(expr, basis=basis).trace()
+
+
+class NCdC(Operator):
+    def __new__(cls, I, J, K, *args, **kwargs):
+        return N(I) * Cd(J) * C(K)
+
+
+def hs_scalarproduct(a, b, basis=None):
+    return trace(a.adjoint() * b, basis)
