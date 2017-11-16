@@ -19,7 +19,7 @@ def gramSchmidt(basis, scalarproduct):
             continue
 
         for n_i in result[:i]:
-            b_i -= (scalarproduct(b_i, n_i) / scalarProduct(n_i, n_i)) * n_i
+            b_i -= (scalarproduct(b_i, n_i) / scalarproduct(n_i, n_i)) * n_i
 
         result[i] = expand(b_i / sqrt(scalarproduct(b_i, b_i)))
     return result
@@ -212,7 +212,7 @@ def ONBofHk_guess(n, k):
     return result
 
 
-print "Checking if our guessed OGBs for Hk are in fact OGBs and have the expected dimension:
+print "Checking if our guessed OGBs for Hk are in fact OGBs and have the expected dimension"
 for _n in range(7):
     for k in range(0, _n + 1):
         n = _n
@@ -225,10 +225,7 @@ for _n in range(7):
         assert (G.det() != 0)
         assert (dimension == HCk_dimension_guess(n, k))
 
-exit(0)
-
-# Check if our guessed OGB for HCk is in fact an OGB and has the expected dimensions
-# TODO: add multiprocessing capabilities?!
+print "Check if our guessed OGB for HCk is in fact an OGB and has the expected dimensions"
 for i in range(0, 6):
     for k in range(0, i + 1):
         n = i
