@@ -13,8 +13,8 @@ class N_Operator(sympy.Expr):
     def fockspace(self):
         return self.args[1]
 
-    def __str__(self):
-        return 'N(%s)' % self.state
+    def _sympystr(self, *args, **kwargs):
+        return 'N(%s)' % ','.join(map(str, sorted(self.state)))
 
 
 N = N_Operator
@@ -47,3 +47,6 @@ class NCdC(sympy.Expr):
             return sympy.sympify(2 ** (n - len(K.union(L).union(A).union(B))))
         else:
             return sympy.sympify(0)
+
+    def _sympystr(self, *args, **kwargs):
+        return 'N(%s)' % ','.join(map(str, sorted(self.state)))
