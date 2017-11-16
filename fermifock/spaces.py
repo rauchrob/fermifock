@@ -7,7 +7,7 @@ from fermifock.operators import *
 
 class FockSpace:
     def __init__(self, n):
-        self.one_particle_dimension = n
+        self.one_particle_dimension = sympify(n)
 
     def basisIndicies(self):
         return FiniteSet(*range(1, self.one_particle_dimension + 1)).powerset()
@@ -20,6 +20,9 @@ class FockSpace:
         for K in state.powerset():
             N_tilde += Integer(-2) ** (len(K)) * self.N(K)
         return N_tilde
+
+    def NCdC(self, K, I, J):
+        return NCdC_Operator(K, I, J, self)
 
     @property
     def one_particle_dimension(self):

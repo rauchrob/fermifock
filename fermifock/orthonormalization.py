@@ -1,7 +1,7 @@
 import itertools
 from sympy import Matrix, sqrt, expand, Add, Mul, Integer, sympify, Range, binomial, pprint, Expr, FiniteSet, S
 
-from fermifock.operators import N_Operator
+from fermifock.operators import N_Operator, NCdC, NCdC_Operator
 from fermifock.spaces import FockSpace
 import copy
 
@@ -23,27 +23,6 @@ def gramSchmidt(basis, scalarproduct):
 
         result[i] = expand(b_i / sqrt(scalarproduct(b_i, b_i)))
     return result
-
-
-class NCdC_Operator(Expr):
-    def _sympystr(self, *args, **kwargs):
-        return "[%s;%s|%s]" % (self.args[0], self.args[1], self.args[2])
-
-    def state(self):
-        return self.args[0:3]
-
-    def sp(self, other):
-        if isinstance(other, NCdC_Operator):
-            K, A, B = self.args[0:3]
-            L, C, D = other.args[0:3]
-
-            if (A == C) and (B == D):
-                return sympify(2 ** (n - len(K.union(L).union(A).union(B))))
-            else:
-                return sympify(0)
-
-
-NCdC = NCdC_Operator
 
 
 class HCkDefaultBasis(object):
@@ -186,6 +165,7 @@ def HCk_dimension_guess2(n, k):
 
 
 def ONBofHk_guess(n, k):
+    fockspace = FockSpace(n)
     orbits = FiniteSet(*range(1, n + 1))
     result = []
 
@@ -201,21 +181,21 @@ def ONBofHk_guess(n, k):
 
                         for L in K.powerset():
                             basis_element += (sympify(-2)) ** (len(L)) * S.ImaginaryUnit * (
-                            NCdC(L, I, J) - NCdC(L, J, I))
+                                fockspace.NCdC(L, I, J) - fockspace.NCdC(L, J, I))
                         result.append(basis_element)
                     if tuple(I) <= tuple(J):
                         basis_element = 0
                         for L in K.powerset():
-                            basis_element += (sympify(-2)) ** (len(L)) * (NCdC(L, I, J) + NCdC(L, J, I))
+                            basis_element += (sympify(-2)) ** (len(L)) * (
+                            fockspace.NCdC(L, I, J) + fockspace.NCdC(L, J, I))
                         result.append(basis_element)
 
     return result
 
 
 print "Checking if our guessed OGBs for Hk are in fact OGBs and have the expected dimension"
-for _n in range(7):
-    for k in range(0, _n + 1):
-        n = _n
+for n in range(7):
+    for k in range(0, n + 1):
         basis = ONBofHk_guess(n, k)
         dimension = len(basis)
         G = gramMatrix(basis, scalarProduct)
@@ -224,6 +204,8 @@ for _n in range(7):
         assert (G.is_diagonal())
         assert (G.det() != 0)
         assert (dimension == HCk_dimension_guess(n, k))
+
+exit(0)
 
 print "Check if our guessed OGB for HCk is in fact an OGB and has the expected dimensions"
 for i in range(0, 6):

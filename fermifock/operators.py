@@ -20,33 +20,30 @@ class N_Operator(sympy.Expr):
 N = N_Operator
 
 
-class NCdC(sympy.Expr):
-    is_commutative = False
-    is_number = False
-
+class NCdC_Operator(sympy.Expr):
     @property
-    def state(self):
-        return (self.args[1], self.args[2], self.args[3])
-
-    @property
-    def fockspace(self):
-        return self.args[0]
-
-    def __str__(self):
-        return 'NCdC(%s)' % self.state
-
-    def sp(self, other):
-        if not isinstance(other, NCdC):
-            raise NotImplementedError
-
-        K, A, B = self.state
-        L, C, D = other.state
-
-        if (A == C) and (B == D):
-            n = self.fockspace.one_particle_dimension
-            return sympy.sympify(2 ** (n - len(K.union(L).union(A).union(B))))
-        else:
-            return sympy.sympify(0)
+    def hilbert_space(self):
+        if len(self.args) >= 4:
+            return self.args[3]
+        return None
 
     def _sympystr(self, *args, **kwargs):
-        return 'N(%s)' % ','.join(map(str, sorted(self.state)))
+        return "[%s;%s|%s]" % (self.args[1], self.args[2], self.args[3])
+
+    def states(self):
+        return self.args[0:3]
+
+    def sp(self, other):
+        if isinstance(other, NCdC_Operator):
+            dimension = self.hilbert_space.dimension
+
+            K, A, B = self.states()
+            L, C, D = other.states()
+
+            if (A == C) and (B == D):
+                return dimension * (sympy.sympify(2) ** (-len(K.union(L).union(A).union(B))))
+            else:
+                return sympy.sympify(0)
+
+
+NCdC = NCdC_Operator
