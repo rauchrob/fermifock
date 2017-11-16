@@ -1,6 +1,6 @@
 from itertools import product
 
-from sympy import FiniteSet, sympify, Integer
+from sympy import FiniteSet, sympify, Integer, S, binomial
 
 from fermifock.operators import *
 
@@ -33,30 +33,20 @@ class FockSpace:
         return 2 ** self.one_particle_dimension
 
 
-class HkSpace:
-    """The space of even, self-adjoint k-body operators on fermionic Fock space
-    of specific dimension"""
-
+class NkSpace:
     def __init__(self, n, k):
         self.fock = FockSpace(n)
         self.n = n
         self.k = k
 
-    def basis(self):
-        """A generator for a basis of H_k"""
-        for I in self.fock.basisIndicies():
-            for J in self.fock.basisIndicies():
-                total_length = len(I) + len(J)
-
-                if (total_length % 2 == 0) and (total_length <= 2 * self.k):
-                    if list(I) <= list(J):
-                        yield (I, J)
-                    if list(I) < list(J):
-                        yield (I, J)
+    def basis(self, name):
+        if name == 'default':
+            return [self.fock.N(I) for I in FiniteSet(*range(n + 1)).powerset() if len(I) <= self.k]
+        if name == 'orthogonal':
+            return [self.fock.N_tilde2(I) for I in FiniteSet(*range(n + 1)).powerset() if len(I <= self.k)]
 
     def dimension(self):
-        """Compute the dimension of H_k"""
-        return len(list(self.basis()))
+        return binomial(self.n, self.k)
 
 
 class HCkSpace:
@@ -68,24 +58,97 @@ class HCkSpace:
         self.n = n
         self.k = k
 
-    def basis(self):
-        """A generator for a basis of H_k"""
-        Is = self.fock.basisIndicies()
+    def basis(self, name):
+        if name == 'default':
+            orbits = FiniteSet(*range(1, self.n + 1))
+            result = []
 
-        for K, I, J in product(Is, repeat=3):
-            if not self._isPairwiseDisjoint(K, I, J):
-                continue
+            for K in orbits.powerset():
+                for I in (orbits - K).powerset():
+                    for J in ((orbits - K) - I).powerset():
+                        basis_element = 0
+                        total_length = len(I) + len(J) + 2 * len(K)
+                        if (total_length % 2 == 0) and (total_length <= 2 * self.k):
+                            result.append(self.fock.NCdC(K, I, J))
+            return result
 
-            total_length = len(I) + len(J) + 2 * len(K)
-            if (total_length % 2 == 0) and (total_length <= 2 * self.k):
-                yield NCdC(self.fock, K, I, J)
+        if name == 'orthogonal':
+            orbits = FiniteSet(*range(1, self.n + 1))
+            result = []
 
+            for K in orbits.powerset():
+                for I in (orbits - K).powerset():
+                    for J in ((orbits - K) - I).powerset():
+                        basis_element = 0
+                        total_length = len(I) + len(J) + 2 * len(K)
+                        if (total_length % 2 == 0) and (total_length <= 2 * self.k):
+                            for L in K.powerset():
+                                basis_element += (sympify(-2)) ** (len(L)) * self.fock.NCdC(L, I, J)
+
+                            result.append(basis_element)
+
+            return result
+
+    @property
     def dimension(self):
-        """Compute the dimension of H_k"""
-        return len(list(self.basis()))
+        result = 0
+        for l in range(self.k + 1):
+            for i in range(2 * l + 1):
+                result += binomial(self.n, i) * binomial(self.n, 2 * l - i)
 
-    def _isPairwiseDisjoint(self, *args):
-        for i, j in product(range(len(args)), repeat=2):
-            if (i != j) and not args[i].is_disjoint(args[j]):
-                return False
-        return True
+        return result
+
+
+class HkSpace:
+    """The space of even, self-adjoint k-body operators on fermionic Fock space
+    of specific dimension"""
+
+    def __init__(self, n, k):
+        self.fock = FockSpace(n)
+        self.n = n
+        self.k = k
+
+    @property
+    def dimension(self):
+        return HCkSpace(self.n, self.k).dimension
+
+    def basis(self, name='default'):
+        if name == 'default':
+            result = []
+            orbits = FiniteSet(*range(1, self.n + 1))
+            Is = orbits.powerset()
+
+            for K in Is:
+                for I in (orbits - K).powerset():
+                    for J in ((orbits - K) - I).powerset():
+                        total_length = len(I) + len(J) + 2 * len(K)
+                        if (total_length % 2 == 0) and (total_length <= 2 * self.k):
+                            result.append(self.fock.NCdC(K, I, J))
+
+            return result
+        if name == 'orthogonal':
+            orbits = FiniteSet(*range(1, self.n + 1))
+            result = []
+
+            for K in orbits.powerset():
+                for I in (orbits - K).powerset():
+                    for J in ((orbits - K) - I).powerset():
+
+                        total_length = len(I) + len(J) + 2 * len(K)
+
+                        if (total_length % 2 == 0) and (total_length <= 2 * self.k):
+                            if tuple(I) < tuple(J):
+                                basis_element = 0
+
+                                for L in K.powerset():
+                                    basis_element += (sympify(-2)) ** (len(L)) * S.ImaginaryUnit * (
+                                        self.fock.NCdC(L, I, J) - self.fock.NCdC(L, J, I))
+                                result.append(basis_element)
+                            if tuple(I) <= tuple(J):
+                                basis_element = 0
+                                for L in K.powerset():
+                                    basis_element += (sympify(-2)) ** (len(L)) * (
+                                        self.fock.NCdC(L, I, J) + self.fock.NCdC(L, J, I))
+                                result.append(basis_element)
+
+            return result
