@@ -10,11 +10,14 @@ class N_Operator(sympy.Expr):
         return self.args[0]
 
     @property
-    def fockspace(self):
+    def hilbertspace(self):
         return self.args[1]
 
     def _sympystr(self, *args, **kwargs):
         return 'N(%s)' % ','.join(map(str, sorted(self.state)))
+
+    def sp(self, other):
+        return self.hilbertspace.dimension * (sympy.Integer(2) ** (len(self.state.union(other.state))))
 
 
 N = N_Operator

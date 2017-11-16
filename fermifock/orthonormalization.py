@@ -1,6 +1,6 @@
 import copy
 
-from sympy import Matrix, sqrt, expand, Add, Mul, Integer, Range, binomial, pprint
+from sympy import Matrix, sqrt, expand, Add, Mul, Range, binomial, pprint
 
 from fermifock.operators import N_Operator, NCdC_Operator
 from fermifock.spaces import FockSpace
@@ -42,12 +42,14 @@ def scalarProduct(A, B):
         return Mul(Mul(*number_args), scalarProduct(A, Mul(*non_number_args)))
 
     if A.func == N_Operator and B.func == N_Operator:
-        n = A.fockspace.one_particle_dimension
-        return Integer(2) ** (n - len(A.state.union(B.state)))
+        return A.sp(B)
 
     if A.func == NCdC_Operator and B.func == NCdC_Operator:
         return A.sp(B)
 
+
+#################################################
+# TODO: move remaining parts into tests/theorems
 
 def ONBofNk(n, k):
     F = FockSpace(n)
@@ -103,14 +105,3 @@ for n in range(0, 6):
 
         if k == 1:
             assert (actual_dimension == 2 * (n ** 2) - n + 1)
-
-# n = 3
-# basis = sorted(list(HCkDefaultBasis(n, 2)), key=lambda A: A.args)
-# orthogonalized_basis = gramSchmidt(basis, scalarProduct)
-#
-# assert(len(basis) == len(orthogonalized_basis))
-# assert(gramMatrix(orthogonalized_basis, scalarProduct).is_diagonal())
-#
-# for i in range(len(basis)):
-#     #assert(len(orthogonalized_basis[i].args) == 2 ** len(basis[i].state()[0]))
-#     print basis[i], '  |->   ', expand(orthogonalized_basis[i])
