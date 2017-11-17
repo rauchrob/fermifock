@@ -17,7 +17,7 @@ class N_Operator(sympy.Expr):
         return 'N(%s)' % ','.join(map(str, sorted(self.state)))
 
     def sp(self, other):
-        return self.hilbertspace.dimension * (sympy.Integer(2) ** (len(self.state.union(other.state))))
+        return self.hilbertspace.dimension * (sympy.Integer(2) ** (-len(self.state.union(other.state))))
 
 
 N = N_Operator

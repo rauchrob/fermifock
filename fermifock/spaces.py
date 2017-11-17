@@ -1,5 +1,3 @@
-from itertools import product
-
 from sympy import FiniteSet, sympify, Integer, S, binomial
 
 from fermifock.operators import *
@@ -16,10 +14,10 @@ class FockSpace:
         return N_Operator(state, self)
 
     def N_tilde2(self, state):
-        N_tilde = sympify(0)
+        result = sympify(0)
         for K in state.powerset():
-            N_tilde += Integer(-2) ** (len(K)) * self.N(K)
-        return N_tilde
+            result += Integer(-2) ** (len(K)) * self.N(K)
+        return result
 
     def NCdC(self, K, I, J):
         return NCdC_Operator(K, I, J, self)
@@ -40,13 +38,18 @@ class NkSpace:
         self.k = k
 
     def basis(self, name):
+        indicies = FiniteSet(*range(1, self.n + 1)).powerset()
         if name == 'default':
-            return [self.fock.N(I) for I in FiniteSet(*range(n + 1)).powerset() if len(I) <= self.k]
+            return [self.fock.N(I) for I in indicies if len(I) <= self.k]
         if name == 'orthogonal':
-            return [self.fock.N_tilde2(I) for I in FiniteSet(*range(n + 1)).powerset() if len(I <= self.k)]
+            return [self.fock.N_tilde2(I) for I in indicies if len(I) <= self.k]
 
+    @property
     def dimension(self):
-        return binomial(self.n, self.k)
+        result = 0
+        for i in range(self.k + 1):
+            result += binomial(self.n, i)
+        return result
 
 
 class HCkSpace:
