@@ -31,7 +31,7 @@ class NCdC_Operator(sympy.Expr):
         return None
 
     def _sympystr(self, *args, **kwargs):
-        return "[%s;%s|%s]" % (self.args[1], self.args[2], self.args[3])
+        return "[%s;%s|%s]" % (self.args[0], self.args[1], self.args[2])
 
     def states(self):
         return self.args[0:3]
