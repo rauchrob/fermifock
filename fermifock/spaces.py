@@ -134,6 +134,12 @@ class HkSpace:
             result = []
 
             for K in orbits.powerset():
+                if len(K) <= self.k:
+                    basis_element = 0
+                    for L in K.powerset():
+                        basis_element += (sympify(-2)) ** (len(L)) * self.fock.NCdC(L, FiniteSet(), FiniteSet())
+                    result.append(basis_element)
+
                 for I in (orbits - K).powerset():
                     for J in ((orbits - K) - I).powerset():
 
@@ -147,7 +153,7 @@ class HkSpace:
                                     basis_element += (sympify(-2)) ** (len(L)) * S.ImaginaryUnit * (
                                         self.fock.NCdC(L, I, J) - self.fock.NCdC(L, J, I))
                                 result.append(basis_element)
-                            if tuple(I) <= tuple(J):
+
                                 basis_element = 0
                                 for L in K.powerset():
                                     basis_element += (sympify(-2)) ** (len(L)) * (
