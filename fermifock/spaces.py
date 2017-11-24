@@ -96,9 +96,7 @@ class HCkSpace:
     def dimension(self):
         result = 0
         for l in range(self.k + 1):
-            for i in range(2 * l + 1):
-                result += binomial(self.n, i) * binomial(self.n, 2 * l - i)
-
+            result += binomial(2 * self.n, 2 * l)
         return result
 
 
