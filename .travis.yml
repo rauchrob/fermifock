@@ -3,3 +3,9 @@ python:
   - "2.7"
 install: pip install tox-travis
 script: tox
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT --id 90f3f37c5e8bc465d7cd903b16cd06ed1467e52ab0922a5c85c7df1d8b9936ee
